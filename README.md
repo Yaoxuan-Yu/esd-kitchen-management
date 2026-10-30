@@ -1,101 +1,123 @@
 # ESD Kitchen Management
 
-## Introduction
+An event-driven **microservices** system that runs a restaurant kitchen end to end: menu availability, ordering and payment, kitchen station assignment, inventory restocking and customer feedback.
 
+Built for the Enterprise Solution Development (IS213) module at Singapore Management University.
 
-This project, `esd-kitchen-management`, is designed to streamline and manage kitchen operations efficiently. It includes features such as inventory management, order tracking, order creation and feedback aggregation.
+---
+
+## Overview
+
+The system is split into **16 independent services**, each owning one business capability. They communicate synchronously over **REST APIs** and asynchronously through **RabbitMQ**, and every service runs in its own **Docker** container.
+
+Key design points:
+- **Loose coupling:** each service has a single responsibility and its own data.
+- **Event-driven workflows:** order and restocking events are published to RabbitMQ, so services react without calling each other directly.
+- **Self-healing inventory:** when the Menu Service finds that ingredients are insufficient, the Error Resolution Service automatically triggers the Inventory Service to restock from suppliers.
+
+---
 
 ## Features
 
-- **Inventory Management**: Keep track of all ingredients and supplies.
-- **View Menu**: Menu items will be shown based on availability of the ingredients needed to prepare the items. 
+| Feature | What it does |
+|---|---|
+| **View Menu** | Shows only the menu items that can be prepared with the ingredients currently in stock. |
+| **Order Creation & Payment** | Customers check out and pay via **Stripe**, creating an order job for the kitchen. |
+| **Kitchen Station Management** | Assigns orders to stations; chefs see the items to prepare and the exact ingredients and quantities needed. |
+| **Order Tracking** | Customers can follow the status of their order after checkout. |
+| **Inventory Management** | Tracks all ingredients and supplies. |
+| **Automated Restocking** | Low stock triggers restock requests to supplier services. |
+| **Feedback & Notifications** | Collects customer feedback and sends email notifications via **Mailjet**. |
 
-- **Error Resolution**: When the menu service determined that there is not enough ingredients to prepare the menu item, it will call the Error Resolution Service which will invoke the inventory service to restock the ingredients.
-<!--  -->
-- **Order Creation**: Users checkout the food items which will create an order job for the kitchen to prepare. 
+---
 
-- **Kitchen Station Management**: 
-    - To keep track of all orders created and sent to the kitchen for preparations. 
-    - Orders will be assigned to a station for preparation, and the chef at that station can view the items that they have to prepare. 
-    - Upon accepting the task, the ingredients and quantity of the ingredients needed to prepare the items will be shown. This is so that the chef can easily reference it. 
+## Architecture
 
-- **Order Tracking**: After orders creation, users are able to view the status of their orders.  
+| Service | Responsibility |
+|---|---|
+| `menu_service` | Menu items and availability checks |
+| `order_service` | Order creation |
+| `order_fulfilment_service` | Orchestrates the order flow across services |
+| `kitchen_station_service` | Assigns orders to kitchen stations |
+| `inventory_service` | Ingredient stock levels |
+| `manage_inventory_service` | Inventory management operations |
+| `restocking_service` | Handles restock requests |
+| `error_resolution_service` | Resolves ingredient shortages by triggering restocking |
+| `feedback_service` | Customer feedback collection |
+| `RFID_scanning_service` | RFID-based ingredient scanning |
+| `supplier_*_service` (×6) | Simulated suppliers: CheeseHaven, DairyDelight, FreshFarms, LettuceLand, OrganicGoods, TomatoExpress |
 
+<!-- Optional: add an architecture diagram here, e.g. ![Architecture](images/architecture.png) -->
 
-<!-- GETTING STARTED -->
+---
 
-## Installation
+## Tech Stack
 
-To install the project, follow these steps:
+| Layer | Technologies |
+|---|---|
+| Frontend | HTML, CSS, JavaScript |
+| Backend | Python (Flask), OutSystems |
+| Database | MySQL |
+| Messaging | RabbitMQ |
+| DevOps | Docker, Docker Compose |
+| External APIs | [Stripe Payment Intents](https://stripe.com/docs/api/payment_intents), [Mailjet](https://dev.mailjet.com/email/guides/) |
+
+---
+
+## Getting Started
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [WAMP](https://www.wampserver.com/) (MySQL database and hosting for the feedback frontend)
+
+### Installation
 
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/qinnyen/esd-kitchen-management.git
-    ```
-2. Navigate to the project directory:
-    ```bash
-    cd esd-kitchen-management
-    ```
-3. Import all the sql files in the sql folder in root
+   ```bash
+   git clone https://github.com/qinnyen/esd-kitchen-management.git
+   cd esd-kitchen-management
+   ```
+2. Import every `.sql` file in the `sql/` folder into MySQL.
+3. Copy `feedback_service/frontend` into WAMP's `www` folder.
 
-## Usage (with Docker)
+### Running the scenarios
 
-Wamp is required.
-Place the frontend folder under esd-kitchen-management/feedback_service/frontend into the www folder
-
-## For scenario 1
+**Scenario 1 – Customer feedback**
 ```bash
-cd esd-kitchen-management/feedback_service
+cd feedback_service
 docker-compose -f compose.yaml up -d --build
 ```
-## For scenario 2
+
+**Scenario 2 – [describe, e.g. ordering and kitchen fulfilment]**
 ```bash
-cd esd-kitchen-management 
 docker-compose -f compose_scenario2.yaml up -d --build
 ```
-## For scenario 3
+
+**Scenario 3 – [describe, e.g. inventory shortage and auto-restocking]**
 ```bash
-cd esd-kitchen-management
 docker-compose -f compose.yaml up -d --build
 ```
 
-
-
-
-
-## Built With
-
-### Frontend
-
-- HTML
-- CSS
-- JS
-
-
-### Backend
-
-- [Python](https://python.org/)
-- [Outsystems](https://success.outsystems.com/documentation/)
-
-### Message Brokers
-
-- [RabbitMQ](https://rabbitmq.com)
-
-### DevOps
-
-- [Docker](https://docker.com)
-
-### External APIs used
-
-
-- [Stripe API](https://stripe.com/docs/api/payment_intents)
-- [Mailjet SMTP](https://dev.mailjet.com/email/guides/)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
+---
 
 ## Beyond the Labs
 
-* External API
-  - Stripe Payment API
+- Integrated the **Stripe Payment API** for real payment processing.
+- Integrated **Mailjet** for email notifications.
+
+---
+
+## My Contributions
+
+- Developed the `feedback_service` for collecting and managing customer feedback
+- Co-developed the inventory management services with a teammate
+- Integrated **Mailjet** email notifications into the order and feedback workflows
+- Applied RabbitMQ-based asynchronous messaging for order and restocking workflows across services
+
+---
+
+## Team
+
+Built by a team of [N] students at SMU School of Computing and Information Systems.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
