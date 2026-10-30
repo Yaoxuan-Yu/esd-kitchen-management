@@ -118,6 +118,6 @@ docker-compose -f compose.yaml up -d --build
 
 ## Team
 
-Built by a team of [N] students at SMU School of Computing and Information Systems.
+Built by a team of 6 students at SMU School of Computing and Information Systems.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
